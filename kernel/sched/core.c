@@ -24,6 +24,10 @@
 #include "../../io_uring/io-wq.h"
 #include "../smpboot.h"
 
+#ifdef CONFIG_SCHED_CVITEK
+#include "cvi_sched.h"
+#endif
+
 #include "pelt.h"
 #include "smp.h"
 
@@ -7614,6 +7618,9 @@ static int _sched_setscheduler(struct task_struct *p, int policy,
 		attr.sched_policy = policy;
 	}
 
+#ifdef CONFIG_SCHED_CVITEK
+	cvi_checkpriority(p, &attr);
+#endif
 	return __sched_setscheduler(p, &attr, check, true);
 }
 /**
@@ -7636,12 +7643,26 @@ int sched_setscheduler(struct task_struct *p, int policy,
 
 int sched_setattr(struct task_struct *p, const struct sched_attr *attr)
 {
+#ifdef CONFIG_SCHED_CVITEK
+	struct sched_attr a = *attr;
+
+	cvi_checkpriority(p, &a);
+	return __sched_setscheduler(p, &a, true, true);
+#else
 	return __sched_setscheduler(p, attr, true, true);
+#endif
 }
 
 int sched_setattr_nocheck(struct task_struct *p, const struct sched_attr *attr)
 {
+#ifdef CONFIG_SCHED_CVITEK
+	struct sched_attr a = *attr;
+
+	cvi_checkpriority(p, &a);
+	return __sched_setscheduler(p, &a, false, true);
+#else
 	return __sched_setscheduler(p, attr, false, true);
+#endif
 }
 EXPORT_SYMBOL_GPL(sched_setattr_nocheck);
 

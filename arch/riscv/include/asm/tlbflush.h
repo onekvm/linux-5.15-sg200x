@@ -10,19 +10,30 @@
 #include <linux/mm_types.h>
 #include <asm/smp.h>
 #include <asm/errata_list.h>
+#ifdef CONFIG_NO_SFENCE_VMA
+#include <asm/csr.h>
+#endif
 
 #ifdef CONFIG_MMU
 extern unsigned long asid_mask;
 
 static inline void local_flush_tlb_all(void)
 {
+#ifdef CONFIG_NO_SFENCE_VMA
+	csr_write(CSR_SMCIR, 1 << 26);
+#else
 	__asm__ __volatile__ ("sfence.vma" : : : "memory");
+#endif
 }
 
 /* Flush one page from local TLB */
 static inline void local_flush_tlb_page(unsigned long addr)
 {
+#ifdef CONFIG_NO_SFENCE_VMA
+	csr_write(CSR_SMCIR, 1 << 26);
+#else
 	ALT_FLUSH_TLB_PAGE(__asm__ __volatile__ ("sfence.vma %0" : : "r" (addr) : "memory"));
+#endif
 }
 #else /* CONFIG_MMU */
 #define local_flush_tlb_all()			do { } while (0)

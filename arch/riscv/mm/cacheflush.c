@@ -91,3 +91,38 @@ void flush_icache_pte(pte_t pte)
 	}
 }
 #endif /* CONFIG_MMU */
+
+/*
+ * T-HEAD C906 DMA cache maintenance. Cube GMAC/SDHCI cannot snoop the
+ * D-cache; 5.10 vendor used dcache.cpa / dcache.cipa on physical addresses.
+ * This bring-up kernel is Cube-only, so always enable the ops.
+ */
+#include <asm/cache.h>
+
+#define sync_is()	asm volatile (".long 0x01b0000b" ::: "memory")
+
+void dma_wbinv_range(unsigned long start, unsigned long end)
+{
+	unsigned long i = start & ~(L1_CACHE_BYTES - 1);
+
+	for (; i < end; i += L1_CACHE_BYTES)
+		asm volatile ("mv a0, %0\n\t"
+			      ".long 0x02b5000b"	/* dcache.cipa a0 */
+			      :
+			      : "r"(i)
+			      : "a0", "memory");
+	sync_is();
+}
+
+void dma_wb_range(unsigned long start, unsigned long end)
+{
+	unsigned long i = start & ~(L1_CACHE_BYTES - 1);
+
+	for (; i < end; i += L1_CACHE_BYTES)
+		asm volatile ("mv a0, %0\n\t"
+			      ".long 0x0295000b"	/* dcache.cpa a0 */
+			      :
+			      : "r"(i)
+			      : "a0", "memory");
+	sync_is();
+}

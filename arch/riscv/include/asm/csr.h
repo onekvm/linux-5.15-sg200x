@@ -120,6 +120,12 @@
 #define CSR_MIMPID		0xf13
 #define CSR_MHARTID		0xf14
 
+/* T-Head C906 supervisor MMU control (5.10 vendor). */
+#define CSR_SMIR		0x9c0
+#define CSR_SMEL		0x9c1
+#define CSR_SMEH		0x9c2
+#define CSR_SMCIR		0x9c3
+
 #ifdef CONFIG_RISCV_M_MODE
 # define CSR_STATUS	CSR_MSTATUS
 # define CSR_IE		CSR_MIE

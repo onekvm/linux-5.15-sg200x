@@ -227,6 +227,14 @@ config MMC_SDHCI_OF_DWCMSHC
 	  If you have a controller with this interface, say Y or M here.
 	  If unsure, say N.
 
+config MMC_SDHCI_CVI
+	tristate "CVITEK SDHCI Controller Support"
+	depends on MMC_SDHCI_PLTFM
+	depends on OF
+	help
+	  Secure Digital Host Controller Interface support for Cvitek
+	  CV181x / SG2002 (compatible cvitek,cv181x-sd / cvitek,cv181x-emmc).
+
 config MMC_SDHCI_OF_SPARX5
 	tristate "SDHCI OF support for the MCHP Sparx5 SoC"
 	depends on MMC_SDHCI_PLTFM

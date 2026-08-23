@@ -229,6 +229,8 @@ const struct of_device_id dwc2_of_match_table[] = {
 	  .data = dwc2_set_stm32mp15_fsotg_params },
 	{ .compatible = "st,stm32mp15-hsotg",
 	  .data = dwc2_set_stm32mp15_hsotg_params },
+	{ .compatible = "cvitek,cv182x-usb",
+	  .data = dwc2_set_cv182x_params },
 	{},
 };
 MODULE_DEVICE_TABLE(of, dwc2_of_match_table);

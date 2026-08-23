@@ -918,4 +918,11 @@ config CRYPTO_DEV_SA2UL
 
 source "drivers/crypto/keembay/Kconfig"
 
+config CRYPTO_DEV_CVITEK_SPACC
+	tristate "Support for cvitek SPACC"
+	depends on HAS_IOMEM
+	help
+	  CryptoDMA character device for CVITEK/SG2002. Built as a
+	  module so OneKVM can load it next to onekvm_crypto_offload.
+
 endif # CRYPTO_HW

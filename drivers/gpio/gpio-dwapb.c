@@ -25,6 +25,9 @@
 #include "gpiolib.h"
 #include "gpiolib-acpi.h"
 
+unsigned int onekvm_gpioa_rtos_mask;
+EXPORT_SYMBOL_GPL(onekvm_gpioa_rtos_mask);
+
 #define GPIO_SWPORTA_DR		0x00
 #define GPIO_SWPORTA_DDR	0x04
 #define GPIO_SWPORTB_DR		0x0c
@@ -486,6 +489,55 @@ err_kfree_pirq:
 	devm_kfree(gpio->dev, pirq);
 }
 
+static void (*onekvm_porta_orig_set)(struct gpio_chip *gc, unsigned int gpio,
+				     int val);
+static int (*onekvm_porta_orig_dir_out)(struct gpio_chip *gc, unsigned int gpio,
+					int val);
+
+static void onekvm_porta_merge(struct gpio_chip *gc, unsigned int gpio, int val,
+			       int dir_out)
+{
+	unsigned long flags;
+	unsigned int mask;
+	u32 dr, ddr;
+
+	mask = READ_ONCE(onekvm_gpioa_rtos_mask);
+	if (!mask) {
+		if (dir_out && onekvm_porta_orig_dir_out)
+			onekvm_porta_orig_dir_out(gc, gpio, val);
+		else if (onekvm_porta_orig_set)
+			onekvm_porta_orig_set(gc, gpio, val);
+		return;
+	}
+
+	raw_spin_lock_irqsave(&gc->bgpio_lock, flags);
+	dr = readl(gc->reg_set);
+	ddr = readl(gc->reg_dir_out);
+	if (dir_out)
+		ddr |= BIT(gpio);
+	if (val)
+		dr |= BIT(gpio);
+	else
+		dr &= ~BIT(gpio);
+	dr = (readl(gc->reg_set) & mask) | (dr & ~mask);
+	ddr = (readl(gc->reg_dir_out) & mask) | (ddr & ~mask);
+	if (dir_out)
+		writel(ddr, gc->reg_dir_out);
+	writel(dr, gc->reg_set);
+	raw_spin_unlock_irqrestore(&gc->bgpio_lock, flags);
+}
+
+static void onekvm_porta_set(struct gpio_chip *gc, unsigned int gpio, int val)
+{
+	onekvm_porta_merge(gc, gpio, val, 0);
+}
+
+static int onekvm_porta_dir_out(struct gpio_chip *gc, unsigned int gpio, int val)
+{
+	onekvm_porta_merge(gc, gpio, val, 1);
+	return 0;
+}
+
 static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
 			       struct dwapb_port_property *pp,
 			       unsigned int offs)
@@ -526,6 +578,17 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
 	/* Only port A support debounce */
 	if (pp->idx == 0)
 		port->gc.set_config = dwapb_gpio_set_config;
+
+	if (pp->idx == 0 && gpio->dev) {
+		struct resource *res = platform_get_resource(
+			to_platform_device(gpio->dev), IORESOURCE_MEM, 0);
+		if (res && res->start == 0x03020000) {
+			onekvm_porta_orig_set = port->gc.set;
+			onekvm_porta_orig_dir_out = port->gc.direction_output;
+			port->gc.set = onekvm_porta_set;
+			port->gc.direction_output = onekvm_porta_dir_out;
+		}
+	}
 
 	/* Only port A can provide interrupts in all configurations of the IP */
 	if (pp->idx == 0)

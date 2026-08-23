@@ -25,6 +25,10 @@ config RISCV
 	select ARCH_HAS_MMIOWB
 	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
 	select ARCH_HAS_PTE_SPECIAL
+	select ARCH_HAS_DMA_PREP_COHERENT
+	select ARCH_HAS_SYNC_DMA_FOR_CPU
+	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
+	select DMA_DIRECT_REMAP
 	select ARCH_HAS_SET_DIRECT_MAP if MMU
 	select ARCH_HAS_SET_MEMORY if MMU
 	select ARCH_HAS_STRICT_KERNEL_RWX if MMU && !XIP_KERNEL
@@ -353,6 +357,20 @@ config RISCV_ISA_C
 	   Linux binary.
 
 	   If you don't know what to do here, say Y.
+
+config NO_SFENCE_VMA
+	bool "Replace sfence.vma with T-Head C906 CSR_SMCIR"
+	depends on !SMP
+	help
+	  Cube C906: 5.10 flushed the TLB with CSR_SMCIR instead of
+	  sfence.vma. Keep the same path so vendor DMA and MMU stay
+	  aligned with the production kernel.
+
+config SCHED_CVITEK
+	bool "Cvitek MMF realtime task priority policy"
+	help
+	  5.10 auto-boosts cvitask_* threads and caps other SCHED_FIFO/RR
+	  at 80 so ISP/VPSS/VENC finish first.
 
 menu "supported PMU type"
 	depends on PERF_EVENTS

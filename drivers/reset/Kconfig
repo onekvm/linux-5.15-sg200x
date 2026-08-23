@@ -275,6 +275,14 @@ config RESET_ZYNQ
 	help
 	  This enables the reset controller driver for Xilinx Zynq SoCs.
 
+config RESET_CVITEK
+	bool "CVITEK SoC reset controller"
+	depends on HAS_IOMEM
+	help
+	  Reset controller for CVITEK CV181x / SG2002. Required so
+	  designware I2C (and later CIF/HDMI) can leave deferred probe.
+	  Matches compatible "cvitek,reset" and "cvitek,clk-reset".
+
 source "drivers/reset/sti/Kconfig"
 source "drivers/reset/hisilicon/Kconfig"
 source "drivers/reset/tegra/Kconfig"

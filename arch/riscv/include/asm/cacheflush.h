@@ -55,4 +55,7 @@ static inline void flush_icache_range(unsigned long start, unsigned long end)
 
 #include <asm-generic/cacheflush.h>
 
+void dma_wbinv_range(unsigned long start, unsigned long end);
+void dma_wb_range(unsigned long start, unsigned long end);
+
 #endif /* _ASM_RISCV_CACHEFLUSH_H */
