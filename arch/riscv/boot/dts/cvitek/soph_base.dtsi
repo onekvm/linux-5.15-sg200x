@@ -102,11 +102,12 @@
 		reset-names = "res_saradc";
 	};
 
-	rtc {
-		compatible = "cvitek,rtc";
-		reg = <0x0 0x05026000 0x0 0x1000>,<0x0 0x05025000 0x0 0x1000>;
-		clocks = <&clk CV181X_CLK_RTC_25M>;
-		clock-names = "clk_rtc";
+	rtc: rtc@5025000 {
+		compatible = "sophgo,cv1800b-rtc", "syscon";
+		reg = <0x0 0x05025000 0x0 0x2000>;
+		clocks = <&clk CV181X_CLK_RTC_25M>,
+			 <&clk CV181X_CLK_SRC_RTC_SYS_0>;
+		clock-names = "rtc", "mcu";
 	};
 
 	cvitek-ion {
@@ -477,7 +478,19 @@
 		snps,mtl-rx-config = <&mtl_rx_setup>;
 		snps,mtl-tx-config = <&mtl_tx_setup>;
 
+		phy-handle = <&internal_ephy>;
 		phy-mode = "rmii";
+
+		mdio {
+			compatible = "snps,dwmac-mdio";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			internal_ephy: ethernet-phy@0 {
+				compatible = "ethernet-phy-ieee802.3-c22";
+				reg = <0>;
+			};
+		};
 	};
 
 	emmc:cv-emmc@4300000 {

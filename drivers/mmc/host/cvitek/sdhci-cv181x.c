@@ -1135,11 +1135,12 @@ static const struct sdhci_pltfm_data sdhci_cv181x_emmc_pdata = {
 
 static const struct sdhci_pltfm_data sdhci_cv181x_sd_pdata = {
 	.ops = &sdhci_cv181x_sd_ops,
-	/* 5.10 Cube uses 64-bit ADMA. 5.15 bring-up added BROKEN_ADMA before
-	 * DMA_DIRECT_REMAP; 32-bit ADMA (BROKEN_64_BIT_DMA) hung UART.
+	/*
+	 * 64-bit ADMA can corrupt the 8-byte SCR read on SA32G cards. 32-bit
+	 * ADMA also hung during bring-up, so keep the removable SD slot on PIO.
 	 */
 	.quirks = SDHCI_QUIRK_INVERTED_WRITE_PROTECT | SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN
-			| SDHCI_QUIRK_BROKEN_TIMEOUT_VAL,
+			| SDHCI_QUIRK_BROKEN_TIMEOUT_VAL | SDHCI_QUIRK_BROKEN_ADMA,
 	.quirks2 = SDHCI_QUIRK2_PRESET_VALUE_BROKEN,
 };
 

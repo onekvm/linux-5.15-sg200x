@@ -25,10 +25,10 @@
 
 &sd {
         min-frequency = <400000>; // 400Khz
-        //max-frequency = <50000000>; // 50Mhz
-        max-frequency = <25000000>; // 25Mhz
-        //max-frequency = <10000000>; // 10Mhz
-        //max-frequency = <5000000>; // 5Mhz
+	max-frequency = <50000000>; // 50Mhz
+	//max-frequency = <25000000>; // 25Mhz
+	//max-frequency = <10000000>; // 10Mhz
+	//max-frequency = <5000000>; // 5Mhz
 };
 
 &cvi_vo {

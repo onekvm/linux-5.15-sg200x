@@ -51,11 +51,14 @@ NanoKVM 验证配置中的重要选项包括：
 - `CONFIG_RESET_CVITEK=y`
 - `CONFIG_SIFIVE_PLIC=y`
 
-使用 SG2002/CV181x 厂商驱动时必须关闭 `CONFIG_VMAP_STACK`。这些驱动使用
-DMA，其中部分路径会对内核对象（包括放在内核栈上的对象）调用
-`virt_to_phys()`。vmapped stack 没有直接的线性物理映射；开启 VMAP_STACK
-可能使驱动向硬件写入无效 DMA 地址。已知受影响的功能包括 SPACC/CryptoDMA
-以及 WebRTC SRTP 等工作负载。
+本 5.15 树必须保持 `CONFIG_VMAP_STACK` 关闭。Linux 5.15 默认开启它，但
+SG2002/CV181x 厂商驱动会用 `virt_to_phys()` 给内核对象（包括栈上的对象）
+编程 DMA。vmapped stack 没有直接的线性物理映射，开启后会写入无效 DMA
+地址，SPACC/CryptoDMA 以及 WebRTC SRTP 等会失败。这是厂家驱动限制，不是
+T-Head CMO/MAE 或 `dma-noncoherent` 能修掉的。
+
+本树不回移通用的 `PREEMPT_DYNAMIC` / 运行时抢占切换。该接口在 6.18 已是
+上游功能，所以 6.18 树可以直接用，不必再带通用核心回移。
 
 ## 验证状态
 

@@ -57,12 +57,16 @@ Important settings in the NanoKVM validation fragment include:
 - `CONFIG_RESET_CVITEK=y`
 - `CONFIG_SIFIVE_PLIC=y`
 
-`CONFIG_VMAP_STACK` must be disabled when using the SG2002/CV181x vendor
-drivers. These drivers use DMA and some paths call `virt_to_phys()` on kernel
-objects, including objects placed on kernel stacks. A vmapped stack has no
-direct linear physical mapping, so enabling VMAP_STACK can program invalid DMA
-addresses. This is known to break SPACC/CryptoDMA and workloads such as WebRTC
-SRTP.
+`CONFIG_VMAP_STACK` must stay disabled on this 5.15 tree. Linux 5.15 defaults
+it on, but the SG2002/CV181x vendor drivers program DMA with `virt_to_phys()`
+of kernel objects, including stack objects. A vmapped stack has no direct
+linear physical mapping, so enabling VMAP_STACK programs invalid DMA addresses
+and breaks SPACC/CryptoDMA and workloads such as WebRTC SRTP. This is a vendor
+driver constraint, not something T-Head CMO/MAE or `dma-noncoherent` fixes.
+
+This tree does not backport generic `PREEMPT_DYNAMIC` / runtime preemption
+switching. That API is already upstream in 6.18, so the 6.18 tree can use it
+without carrying a generic-core backport.
 
 ## Validation status
 

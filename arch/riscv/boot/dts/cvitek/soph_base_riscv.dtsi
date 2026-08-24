@@ -89,7 +89,8 @@
 	cooling:cooling {
 		clocks = <&clk CV181X_CLK_C906_0>, <&clk CV181X_CLK_TPU>;
 		clock-names = "clk_cpu", "clk_tpu_axi";
-		dev-freqs = <850000000 500000000>,
+		dev-freqs = <1050000000 700000000>,
+			<850000000 500000000>,
 			<425000000 375000000>,
 			<425000000 300000000>;
 		compatible = "sophgo,cooling";
@@ -129,8 +130,11 @@
 		interrupt-parent = <&plic0>;
 	};
 
-	rtc {
-		interrupts = <17 IRQ_TYPE_LEVEL_HIGH>;
+	rtc@5025000 {
+		interrupts = <17 IRQ_TYPE_LEVEL_HIGH>,
+			     <18 IRQ_TYPE_LEVEL_HIGH>,
+			     <19 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-names = "alarm", "longpress", "vbat";
 		interrupt-parent = <&plic0>;
 	};
 
@@ -145,6 +149,7 @@
 
 	watchdog0: cv-wd@0x3010000 {
 		interrupts = <58 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-parent = <&plic0>;
 	};
 
 	spinand:cv-spinf@4060000 {
