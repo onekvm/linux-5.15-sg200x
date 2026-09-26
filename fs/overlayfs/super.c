@@ -426,6 +426,7 @@ static const struct super_operations ovl_super_operations = {
 
 enum {
 	OPT_LOWERDIR,
+	OPT_LOWERDIR_ADD,
 	OPT_UPPERDIR,
 	OPT_WORKDIR,
 	OPT_DEFAULT_PERMISSIONS,
@@ -448,6 +449,7 @@ enum {
 
 static const match_table_t ovl_tokens = {
 	{OPT_LOWERDIR,			"lowerdir=%s"},
+	{OPT_LOWERDIR_ADD,		"lowerdir+=%s"},
 	{OPT_UPPERDIR,			"upperdir=%s"},
 	{OPT_WORKDIR,			"workdir=%s"},
 	{OPT_DEFAULT_PERMISSIONS,	"default_permissions"},
@@ -547,6 +549,29 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
 			if (!config->lowerdir)
 				return -ENOMEM;
 			break;
+
+		case OPT_LOWERDIR_ADD: {
+			char *lowerdir, *combined;
+
+			lowerdir = match_strdup(&args[0]);
+			if (!lowerdir)
+				return -ENOMEM;
+
+			if (!config->lowerdir) {
+				config->lowerdir = lowerdir;
+				break;
+			}
+
+			combined = kasprintf(GFP_KERNEL, "%s:%s",
+					     config->lowerdir, lowerdir);
+			kfree(lowerdir);
+			if (!combined)
+				return -ENOMEM;
+
+			kfree(config->lowerdir);
+			config->lowerdir = combined;
+			break;
+		}
 
 		case OPT_WORKDIR:
 			kfree(config->workdir);
